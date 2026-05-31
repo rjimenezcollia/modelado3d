@@ -551,7 +551,7 @@
 
     <div id="timeoutPopup" class="popup hidden">
         <div class="popup-content">
-            <h2></h2>
+            <h2>¡¡Tiempo!!</h2>
         </div>
     </div>
 
@@ -563,8 +563,6 @@
         const TIEMPO_INICIAL = 30;
         const PREGUNTAS_RAW =
             "¿Por qué elegiste este taller?|¿Dónde se usa el modelado 3D?|¿Qué videojuego te copa más?|¿Cuál es la mejor película?|¿Cuantos años tiene tu compañer@ de enfrente?|¿Cómo se llama tu compañer@ de al lado?";
-        const EXITO_TIEMPO = "¡¡Muy bien!!";
-        const FIN_TIEMPO = "¡¡Tiempo!!";
 
         function inicializarTimerUI() {
             const valueEl = document.querySelector("#timer .value");
@@ -739,13 +737,10 @@
         let timer = null;
         let tiempoRestante = TIEMPO_INICIAL;
         let timerActivo = false;
-        let popupMode = null;
-        // null | "timeout" | "completed"
 
         function iniciarCountdown() {
 
             if (timerActivo) return;
-            detenerCountdown();
             timerActivo = true;
             tiempoRestante = TIEMPO_INICIAL;
             const timerEl = document.getElementById("timer");
@@ -766,25 +761,10 @@
             }, 1000);
         }
 
-        function mostrarPopup(tipo = "timeout") {
+        function mostrarPopup() {
 
             const popup = document.getElementById("timeoutPopup");
-            const title = popup.querySelector("h2");
-
-            popupMode = tipo;
-
-            if (tipo === "completed") {
-                title.textContent = EXITO_TIEMPO;
-            } else {
-                title.textContent = FIN_TIEMPO;
-            }
-
             popup.classList.remove("hidden");
-        }
-
-        function todasLasCartasAbiertas() {
-            const cards = [...document.querySelectorAll(".card")];
-            return cards.every(c => c.classList.contains("flipped"));
         }
 
         function cerrarPopupYReiniciar() {
@@ -792,20 +772,7 @@
             popup.classList.add("hidden");
             resetCountdown();
             resetEstadoGlobal();
-            popupMode = null;
             document.getElementById("shuffleBtn").click();
-        }
-
-        function detenerCountdown() {
-            if (timer) {
-                clearInterval(timer);
-                timer = null;
-            }
-
-            timerActivo = false;
-
-            const timerEl = document.getElementById("timer");
-            timerEl.classList.remove("active");
         }
 
         /*Tecla ENTER*/
@@ -821,13 +788,6 @@
 
             if (popupOpen) {
                 cerrarPopupYReiniciar();
-                popupMode = null;
-                return;
-            }
-
-            if (todasLasCartasAbiertas()) {
-                detenerCountdown();
-                mostrarPopup("completed");
                 return;
             }
 
