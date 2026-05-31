@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelado 3D</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --card-bg: #f2edb7;
+            --olive: rgba(116, 123, 52, 1);
+            --olive-light: rgb(140, 148, 70);
+            --olive-dark: rgb(85, 90, 35);
+        }
+
+        /* RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #ece7b2;
+        }
+
+        h1 {
+
+            font-size: clamp(1.8rem, 4vw, 4rem);
+            font-weight: 900;
+            color: var(--olive);
+            text-transform: uppercase;
+            text-align: left;
+            margin-bottom: 2vw;
+        }
+
+        /* Grid */
+
+        .grid {
+
+            display: grid;
+            grid-template-rows: repeat(2, 1fr);
+            width: 100%;
+            height: 70vh;
+            grid-template-columns: repeat(auto-fit, minmax(clamp(120px, 18vw, 300px), 1fr));
+            gap: clamp(12px, 2vw, 40px);
+
+
+        }
+
+        /* Carta */
+
+        .card {
+
+            /* aspect-ratio: 1 / 1.2; */
+            width: 100%;
+            perspective: 1200px;
+            height: 100%;
+            cursor: pointer;
+            position: relative;
+            transform: translateZ(0);
+        }
+
+        .card-inner {
+
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: transform;
+            transition:
+                transform .4s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .card.flipped .card-inner {
+
+            transform: rotateY(180deg);
+        }
+
+        /* Caras */
+
+        .front,
+        .back {
+
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            overflow: hidden;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+
+        /* Frente */
+
+        .front {
+
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    var(--card-bg));
+            border: 3px solid rgba(255, 255, 255, .15);
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .30),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+            color: var(--olive);
+            font-size: clamp(2.5rem, 12vw, 12rem);
+            font-weight: 700;
+            transform: none;
+            text-shadow:
+                1px 1px 0 var(--olive-dark),
+                2px 2px 0 var(--olive-dark),
+                3px 3px 0 var(--olive-dark),
+                4px 4px 0 var(--olive-dark),
+                5px 5px 0 var(--olive-dark),
+                6px 6px 0 var(--olive-dark),
+                7px 7px 0 var(--olive-dark),
+                8px 8px 0 var(--olive-dark),
+                12px 12px 20px rgba(0, 0, 0, .35);
+            transition:
+                all 0.4s cubic-bezier(.4, 0, .2, 1),
+                opacity .25s ease,
+                transform .25s ease;
+        }
+
+        /* Dorso */
+
+        .back {
+
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    #f2edb7);
+            border: 3px solid rgba(255, 255, 255, .15);
+            color: var(--olive);
+            transform: rotateY(180deg);
+            font-size: clamp(0.9rem, 2.5vw, 2.5rem);
+            line-height: 1.3;
+            font-weight: 900;
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .20),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+
+        }
+
+        /* Hover */
+
+        .card:hover {
+            transform: none;
+        }
+
+        .card:hover .front {
+
+            background:
+                linear-gradient(145deg,
+                    #ffffff,
+                    #f3f3f3);
+            background:
+                linear-gradient(145deg,
+                    var(--olive),
+                    var(--olive-dark));
+            color: #f2edb7;
+            border: 3px solid #f2edb7;
+            box-shadow:
+                0 0 20px rgba(116, 123, 52, .35),
+                0 0 50px rgba(116, 123, 52, .25),
+                0 20px 40px rgba(0, 0, 0, .45);
+            text-shadow:
+                1px 1px 0 rgba(0, 0, 0, .15),
+                2px 2px 0 rgba(0, 0, 0, .15),
+                3px 3px 0 rgba(0, 0, 0, .15),
+                4px 4px 0 rgba(0, 0, 0, .15);
+            transform: none;
+        }
+
+        .controls {
+
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #shuffleBtn {
+
+            width: clamp(90px, 10vw, 150px);
+            height: clamp(90px, 10vw, 135px);
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    #f2edb7);
+            border: 3px solid rgba(255, 255, 255, .15);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .20),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition:
+                transform .8s cubic-bezier(.2, .8, .2, 1),
+                opacity .25s ease;
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        @keyframes girarBoton {
+
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            20% {
+                transform: rotate(70deg) scale(.96);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(.88);
+            }
+
+            80% {
+                transform: rotate(290deg) scale(.96);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        #shuffleBtn.girando {
+
+            animation: girarBoton .8s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .shuffle-icon {
+
+            width: 50%;
+            height: auto;
+            object-fit: contain;
+            transition: all .35s ease;
+        }
+
+        #shuffleBtn:hover {
+
+            opacity: .6;
+        }
+
+        .numero {
+
+            display: block;
+            filter: blur(0);
+            transition:
+                opacity .25s ease,
+                transform .25s ease,
+                filter .25s ease;
+        }
+
+        .numero-oculto {
+
+            opacity: 0;
+            transform:
+                scale(.3) rotate(-15deg);
+            filter: blur(6px);
+        }
+
+        /* LAYOUT */
+        .layout {
+            display: grid;
+            grid-template-columns: clamp(260px, 30vw, 525px) 1fr;
+            gap: clamp(10px, 4vw, 70px);
+            padding: clamp(12px, 2vw, 40px);
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* zona superior alineada con el logo */
+        .right-top {
+
+            width: 100%;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 2vw 0;
+            /* ajusta según altura del logo */
+        }
+
+        .logo {
+            width: clamp(90px, 10vw, 150px);
+        }
+
+        .sidebar-content {
+
+            margin: auto 0;
+        }
+
+        .subtitle {
+
+            font-family: 'Montserrat', sans-serif;
+            font-size: clamp(1rem, 3vw, 3rem);
+            font-weight: 200;
+            color: rgba(116, 123, 52, .75);
+            margin-top: -10px;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .popup {
+
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            opacity: 1;
+            transition: opacity .3s ease;
+            text-transform: uppercase;
+            height: auto;
+            padding: clamp(20px, 3vw, 50px);
+            font-size: clamp(1.5rem, 3vw, 3rem);
+        }
+
+        .popup.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .popup-content {
+
+            min-width: 50%;
+            height: 25%;
+            padding: 5vw;
+            background: #f2edb7;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: rgba(116, 123, 52, 1);
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, .3);
+        }
+
+        #timer {
+
+            font-size: clamp(1.5rem, 4vw, 4rem);
+            font-weight: 200;
+            color: rgba(116, 123, 52, 1);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            width: 100%;
+        }
+
+        #timer .value {
+
+            display: inline-block;
+            min-width: clamp(50px, 6vw, 85px);
+            min-height: 85px;
+        }
+
+        /* animación SOLO cuando está activo */
+        #timer.active .value {
+
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .card.simulated-hover .front {
+            background: linear-gradient(145deg, var(--olive), var(--olive-dark));
+            color: #f2edb7;
+            border: 3px solid #f2edb7;
+            transition: all .25s ease;
+        }
+
+        /* Responsive */
+
+        @media (max-width:768px) {
+
+            body {
+                padding: 20px;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 40px;
+            }
+
+            .sidebar {
+                align-items: center;
+                text-align: center;
+            }
+
+            .grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 20px;
+            }
+
+            .card {
+                height: 220px;
+            }
+
+            .front {
+                font-size: 5rem;
+            }
+
+            .back {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 1000px) {
+
+            .layout {
+
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .sidebar {
+
+                align-items: center;
+                text-align: center;
+                padding-left: 0;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            h1 {
+
+                text-align: center;
+            }
+
+            .grid {
+
+                grid-template-columns:
+                    repeat(auto-fit, minmax(220px, 1fr));
+                justify-items: center;
+            }
+        }
+
+        /* 4K OPTIMIZATION */
+        @media (min-width: 2000px) {
+
+            .grid {
+                max-width: 1300px;
+                gap: 50px;
+            }
+
+            h1 {
+                letter-spacing: -3px;
+            }
+        }
+    </style>
+</head>
+
+<!-- ************************************************************************************* -->
+
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <img src="tumo_logo.png" alt="Logo" class="logo">
+            <div class="sidebar-content">
+                <h1>Modelado 3D</h1>
+                <p class="subtitle">Nivel 1</p>
+                <div class="controls">
+                    <button id="shuffleBtn">
+                        <img src="personaje.png" alt="Mezclar" class="shuffle-icon">
+                    </button>
+                </div>
+        </aside>
+
+        <main class="content">
+            <div class="right-top">
+                <div id="timer">
+                    <span class="label">Tiempo:</span>
+                    <span class="value"></span>
+                </div>
+            </div>
+            <div class="grid" id="grid"></div>
+        </main>
+    </div>
+
+    <div id="timeoutPopup" class="popup hidden">
+        <div class="popup-content">
+            <h2>¡¡Tiempo!!</h2>
+        </div>
+    </div>
+
+
+    <!-- ********************************************************************** -->
+
+    <script>
+
+        const TIEMPO_INICIAL = 20;
+        const PREGUNTAS_RAW =
+            "¿Por qué elegiste este taller?|¿Dónde se usa el modelado 3D?|¿Qué videojuego te apasiona más?|¿Cuál es la mejor película?|¿Qué serie te gusta más?|¿Cómo se llama tu compañer@ de al lado?";
+
+        function inicializarTimerUI() {
+            const valueEl = document.querySelector("#timer .value");
+            valueEl.textContent = TIEMPO_INICIAL;
+        }
+        inicializarTimerUI();
+
+        function generarCartasDesdeTexto(texto, max = 6) {
+            const preguntas = texto
+                .split("|")
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+
+            // shuffle (Fisher-Yates)
+            for (let i = preguntas.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [preguntas[i], preguntas[j]] = [preguntas[j], preguntas[i]];
+            }
+
+            return preguntas
+                .slice(0, max)
+                .map((pregunta, index) => ({
+                    numero: index + 1,
+                    pregunta
+                }));
+        }
+
+        let cartas = generarCartasDesdeTexto(PREGUNTAS_RAW, 6);
+
+        const grid = document.getElementById("grid");
+        let cartaAbierta = null;
+        function renderCartas() {
+            grid.innerHTML = "";
+            cartas.forEach(carta => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+    <div class="card-inner">
+        <div class="front">
+            <span class="numero">${carta.numero}</span>
+        </div>
+        <div class="back">${carta.pregunta}</div>
+    </div>
+`;
+                card.addEventListener("click", () => {
+                    if (card.classList.contains("flipped")) return;
+                    card.classList.add("flipped");
+                    cartaAbierta = card;
+                    if (!timerActivo) {
+                        iniciarCountdown();
+                    }
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        renderCartas();
+
+        function mezclarPreguntasInterno() {
+            const preguntas =
+                cartas.map(c => c.pregunta);
+            for (let i = preguntas.length - 1; i > 0; i--) {
+                const j =
+                    Math.floor(Math.random() * (i + 1));
+                [preguntas[i], preguntas[j]] =
+                    [preguntas[j], preguntas[i]];
+            }
+            cartas.forEach((carta, index) => {
+                carta.pregunta = preguntas[index];
+            });
+        }
+
+        document
+            .getElementById("shuffleBtn")
+            .addEventListener("click", animarMezcla);
+
+        let mezclando = false;
+        async function animarMezcla() {
+
+            if (mezclando) return;
+            mezclando = true;
+            bloqueoGlobal = true;
+            const shuffleBtn = document.getElementById("shuffleBtn");
+            shuffleBtn.classList.remove("girando");
+            void shuffleBtn.offsetWidth; // reinicia animación
+            shuffleBtn.classList.add("girando");
+            resetCountdown();
+            resetEstadoGlobal();
+            const cards = [...document.querySelectorAll(".card")];
+            cartaAbierta = null;
+            cards.forEach(card => {
+                card.classList.remove("flipped");
+                card.classList.remove("simulated-hover");
+            });
+            await new Promise(r => setTimeout(r, 300));
+
+            const gridRect = grid.getBoundingClientRect();
+            const centroX = gridRect.left + gridRect.width / 2;
+            const centroY = gridRect.top + gridRect.height / 2;
+            // Guardamos posiciones originales
+            const posiciones = cards.map(card => {
+
+                const rect = card.getBoundingClientRect();
+                return {
+                    card,
+                    x: centroX - (rect.left + rect.width / 2),
+                    y: centroY - (rect.top + rect.height / 2)
+                };
+            });
+
+            const numeros =
+                document.querySelectorAll(".numero");
+            numeros.forEach(numero => {
+                numero.classList.add("numero-oculto");
+            });
+
+            // Juntar cartas
+            posiciones.forEach(({ card, x, y }) => {
+
+                const rotacion =
+                    (Math.random() * 50) - 25;
+                card.style.zIndex = "100";
+                card.style.transition =
+                    "transform 1.4s cubic-bezier(.16,1,.3,1)";
+                card.style.transform =
+                    `translate(${x}px, ${y}px)
+             rotate(${rotacion}deg)
+             scale(.92)`;
+            });
+            await new Promise(r => setTimeout(r, 800));
+
+            // Mezclar preguntas
+            mezclarPreguntasInterno();
+
+            // Actualizar textos SIN recrear cartas
+            document
+                .querySelectorAll(".back")
+                .forEach((back, index) => {
+
+                    back.textContent =
+                        cartas[index].pregunta;
+                });
+
+            // Pequeña pausa para dar sensación de mezcla
+            await new Promise(r => setTimeout(r, 250));
+
+            // Repartir nuevamente
+            posiciones.forEach(({ card }) => {
+
+                card.style.transition =
+                    "transform 1.4s cubic-bezier(.16,1,.3,1)";
+                card.style.transform =
+                    "translate(0px,0px) rotate(0deg) scale(1)";
+            });
+
+            numeros.forEach((numero, index) => {
+
+                setTimeout(() => {
+                    numero.classList.remove("numero-oculto");
+                }, 300 + index * 80);
+            });
+            await new Promise(r => setTimeout(r, 1200));
+            cards.forEach(card => {
+                card.style.zIndex = "";
+            });
+            mezclando = false;
+            bloqueoGlobal = false;
+            animandoCarta = false;
+        }
+
+        /*PopUp*/
+        let timer = null;
+        let tiempoRestante = TIEMPO_INICIAL;
+        let timerActivo = false;
+
+        function iniciarCountdown() {
+
+            if (timerActivo) return;
+            timerActivo = true;
+            tiempoRestante = TIEMPO_INICIAL;
+            const timerEl = document.getElementById("timer");
+            const valueEl = timerEl.querySelector(".value");
+            timerEl.classList.add("active");
+            valueEl.textContent = tiempoRestante;
+            timer = setInterval(() => {
+
+                tiempoRestante--;
+                valueEl.textContent = tiempoRestante;
+                if (tiempoRestante <= 0) {
+
+                    clearInterval(timer);
+                    timerEl.classList.remove("active");
+                    mostrarPopup();
+                }
+
+            }, 1000);
+        }
+
+        function mostrarPopup() {
+
+            const popup = document.getElementById("timeoutPopup");
+            popup.classList.remove("hidden");
+        }
+
+        function cerrarPopupYReiniciar() {
+            const popup = document.getElementById("timeoutPopup");
+            popup.classList.add("hidden");
+            resetCountdown();
+            resetEstadoGlobal();
+            document.getElementById("shuffleBtn").click();
+        }
+
+        /*Tecla ENTER*/
+        let cartaIndex = 0;
+        let animandoCarta = false;
+        let bloqueoGlobal = false;
+
+        document.addEventListener("keydown", async (e) => {
+
+            if (e.key !== "Enter") return;
+            const popup = document.getElementById("timeoutPopup");
+            const popupOpen = !popup.classList.contains("hidden");
+
+            if (popupOpen) {
+                cerrarPopupYReiniciar();
+                return;
+            }
+
+            const isBlocked = mezclando || animandoCarta || bloqueoGlobal;
+            if (isBlocked) return;
+
+            const cards = [...document.querySelectorAll(".card")];
+            const shuffleBtn = document.getElementById("shuffleBtn");
+
+            // CASO 1: hay cartas disponibles
+            if (cartaIndex < cards.length) {
+
+                const card = cards[cartaIndex];
+                if (!card || card.classList.contains("flipped")) {
+                    cartaIndex++;
+                    return;
+                }
+                animandoCarta = true;
+                bloqueoGlobal = true;
+                cartaIndex++;
+                await activarCartaConEnter(card);
+                animandoCarta = false;
+                bloqueoGlobal = false;
+                return;
+            }
+
+            // CASO 2: reinicio
+            cartaIndex = 0;
+            shuffleBtn.click();
+        });
+
+
+        function resetCountdown() {
+
+            const timerEl = document.getElementById("timer");
+            const valueEl = timerEl.querySelector(".value");
+
+            // detener intervalo
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+
+            // reset estado
+            timerActivo = false;
+            tiempoRestante = TIEMPO_INICIAL;;
+
+            // UI reset
+            valueEl.textContent = TIEMPO_INICIAL;
+            timerEl.classList.remove("active");
+        }
+
+        async function activarCartaConEnter(card) {
+
+            if (!card) return;
+            card.classList.add("simulated-hover");
+            await new Promise(r => setTimeout(r, 180));
+            card.click();
+            await new Promise(r => setTimeout(r, 250));
+            card.classList.remove("simulated-hover");
+        }
+
+        function resetEstadoGlobal() {
+            cartaIndex = 0;
+            animandoCarta = false;
+            bloqueoGlobal = false;
+        }
+
+        document.getElementById("timeoutPopup").addEventListener("click", () => {
+            cerrarPopupYReiniciar();
+        });
+
+    </script>
+</body>
+
+</html>

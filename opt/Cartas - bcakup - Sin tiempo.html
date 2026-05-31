@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelado 3D</title>
+
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --card-bg: #f2edb7;
+
+            --olive: rgba(116, 123, 52, 1);
+            --olive-light: rgb(140, 148, 70);
+            --olive-dark: rgb(85, 90, 35);
+
+            --tumo-black: #080808;
+            --tumo-dark: #121212;
+            --tumo-gray: #1E1E1E;
+            --tumo-white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+
+            font-family: 'Montserrat', sans-serif;
+
+            height: 100vh;
+
+            padding: 0;
+
+            overflow: hidden;
+
+            color: var(--tumo-white);
+
+            background-image: url("tumo_bg.jpg");
+
+            background-size: cover;
+
+            background-position: center;
+
+            background-repeat: no-repeat;
+
+            background-attachment: fixed;
+
+            position: relative;
+
+            overflow-x: hidden;
+        }
+
+
+
+        body::before {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            background: rgba(236, 231, 178, 1);
+
+            pointer-events: none;
+
+            z-index: -1;
+        }
+
+        body::after {
+
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            background-image: url("tumo_bg.jpg");
+
+            background-size: cover;
+
+            background-position: center;
+
+            background-repeat: no-repeat;
+
+            background-attachment: fixed;
+
+            z-index: -2;
+        }
+
+        /* Título */
+
+        h1 {
+
+
+
+            font-size: 4rem;
+
+            font-weight: 900;
+
+            letter-spacing: -3px;
+
+            text-transform: uppercase;
+
+            color: var(--olive);
+
+            text-align: left;
+
+            margin-bottom: 30px;
+
+            /* max-width: 300px; */
+        }
+
+        /* Grid */
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            grid-template-rows: repeat(2, 1fr);
+
+            gap: 40px;
+
+            width: 100%;
+
+            max-width: 1200px;
+
+            height: 70vh;
+        }
+
+        /* Carta */
+
+        .card {
+
+            width: 100%;
+
+            height: 100%;
+
+            /* min-height: 320px; */
+
+            perspective: 1200px;
+
+            cursor: pointer;
+
+            position: relative;
+
+            transform: translateZ(0);
+        }
+
+        .card-inner {
+
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            transform-style: preserve-3d;
+
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+
+            will-change: transform;
+
+            transition:
+                transform .8s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .card.flipped .card-inner {
+
+            transform: rotateY(180deg);
+        }
+
+        /* Caras */
+
+        .front,
+        .back {
+
+            position: absolute;
+
+            width: 100%;
+
+            height: 100%;
+
+            border-radius: 24px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            text-align: center;
+
+            padding: 24px;
+
+            overflow: hidden;
+
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+
+            transform-style: preserve-3d;
+
+            will-change: transform;
+        }
+
+        /* Frente */
+
+        .front {
+            transition:
+                all 0.4s cubic-bezier(.4, 0, .2, 1);
+
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    var(--card-bg));
+
+            border: 3px solid rgba(255, 255, 255, .15);
+
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .30),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+
+            color: var(--olive);
+
+            font-size: 12rem;
+
+            font-weight: 700;
+
+            transform:
+                /* rotateX(8deg) rotateY(-8deg); */
+                none;
+
+            text-shadow:
+                1px 1px 0 var(--olive-dark),
+                2px 2px 0 var(--olive-dark),
+                3px 3px 0 var(--olive-dark),
+                4px 4px 0 var(--olive-dark),
+                5px 5px 0 var(--olive-dark),
+                6px 6px 0 var(--olive-dark),
+                7px 7px 0 var(--olive-dark),
+                8px 8px 0 var(--olive-dark),
+                12px 12px 20px rgba(0, 0, 0, .35);
+
+            transition:
+                all 0.4s cubic-bezier(.4, 0, .2, 1),
+                opacity .25s ease,
+                transform .25s ease;
+        }
+
+        /* Dorso */
+
+        .back {
+
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    #f2edb7);
+
+            border: 3px solid rgba(255, 255, 255, .15);
+
+            color: var(--olive);
+
+            transform: rotateY(180deg);
+
+            font-size: 2.5rem;
+
+            line-height: 1.3;
+
+            font-weight: 900;
+
+
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .20),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+
+        }
+
+        /* Hover */
+
+        /* Hover */
+
+        .card:hover {
+            transform: none;
+        }
+
+        .card:hover .front {
+
+            background:
+                linear-gradient(145deg,
+                    #ffffff,
+                    #f3f3f3);
+            background:
+                linear-gradient(145deg,
+                    var(--olive),
+                    var(--olive-dark));
+
+            color: #f2edb7;
+
+            border: 3px solid #f2edb7;
+
+            box-shadow:
+                0 0 20px rgba(116, 123, 52, .35),
+                0 0 50px rgba(116, 123, 52, .25),
+                0 20px 40px rgba(0, 0, 0, .45);
+
+            text-shadow:
+                1px 1px 0 rgba(0, 0, 0, .15),
+                2px 2px 0 rgba(0, 0, 0, .15),
+                3px 3px 0 rgba(0, 0, 0, .15),
+                4px 4px 0 rgba(0, 0, 0, .15);
+            transform:
+                /* rotateX(8deg) rotateY(-8deg); */
+                none;
+
+        }
+
+        /* Responsive */
+
+        @media (max-width:768px) {
+
+            body {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+                margin-bottom: 40px;
+            }
+
+            .grid {
+                gap: 20px;
+            }
+
+            .card {
+                height: 220px;
+            }
+
+            .front {
+                font-size: 5rem;
+            }
+
+            .back {
+                font-size: 1rem;
+            }
+        }
+
+        .controls {
+
+            display: flex;
+
+            justify-content: flex-start;
+        }
+
+        #shuffleBtn {
+
+            width: 150px;
+
+            height: 128px;
+
+            background:
+                linear-gradient(145deg,
+                    #faf7d8,
+                    #f2edb7);
+
+            border: 3px solid rgba(255, 255, 255, .15);
+
+            border-radius: 24px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            cursor: pointer;
+
+
+            box-shadow:
+                0 15px 40px rgba(116, 123, 52, .20),
+                0 10px 25px rgba(0, 0, 0, .45),
+                inset 0 2px 8px rgba(255, 255, 255, .25);
+
+            overflow: hidden;
+
+            transform-style: preserve-3d;
+
+            transition:
+                transform .8s cubic-bezier(.2, .8, .2, 1),
+                opacity .25s ease;
+
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        @keyframes girarBoton {
+
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            20% {
+                transform: rotate(70deg) scale(.96);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(.88);
+            }
+
+            80% {
+                transform: rotate(290deg) scale(.96);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        #shuffleBtn.girando {
+
+            animation: girarBoton .8s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .shuffle-icon {
+
+            width: 50%;
+
+            height: auto;
+
+            object-fit: contain;
+
+            transition: all .35s ease;
+        }
+
+        #shuffleBtn:hover {
+
+            opacity: .6;
+        }
+
+        .numero {
+
+            display: block;
+
+            filter: blur(0);
+
+            transition:
+                opacity .25s ease,
+                transform .25s ease,
+                filter .25s ease;
+        }
+
+        .numero-oculto {
+
+            opacity: 0;
+
+            transform:
+                scale(.3) rotate(-15deg);
+
+            filter: blur(6px);
+        }
+
+        .layout {
+
+            display: grid;
+
+            grid-template-columns: 30% 70%;
+
+            height: 100vh;
+
+            gap: 10px;
+
+            padding: 40px;
+            align-items: center;
+        }
+
+        .sidebar {
+
+            display: flex;
+
+            flex-direction: column;
+
+            height: 100%;
+        }
+
+        .content {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            width: 100%;
+
+
+        }
+
+        @media (max-width: 1000px) {
+
+            .layout {
+
+                grid-template-columns: 1fr;
+
+                gap: 40px;
+            }
+
+            .sidebar {
+
+                align-items: center;
+
+                text-align: center;
+
+                padding-left: 0;
+            }
+
+            h1 {
+
+                text-align: center;
+            }
+
+            .grid {
+
+                grid-template-columns:
+                    repeat(auto-fit, minmax(220px, 1fr));
+
+                justify-items: center;
+            }
+        }
+
+        .logo {
+
+            width: 150px;
+
+            margin-bottom: 0;
+        }
+
+        .sidebar-content {
+
+            margin: auto 0;
+        }
+
+        .subtitle {
+
+            font-family: 'Montserrat', sans-serif;
+
+            font-size: 3rem;
+
+            font-weight: 200;
+
+            color: rgba(116, 123, 52, .75);
+
+            margin-top: -10px;
+
+            margin-bottom: 40px;
+
+            letter-spacing: -3px;
+
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <aside class="sidebar">
+
+            <img src="tumo_logo.png" alt="Logo" class="logo">
+
+            <div class="sidebar-content">
+
+                <h1>Modelado 3D</h1>
+                <p class="subtitle">Nivel 1</p>
+                <div class="controls">
+                    <button id="shuffleBtn">
+
+                        <img src="personaje.png" alt="Mezclar" class="shuffle-icon">
+
+                    </button>
+                </div>
+
+            </div>
+
+        </aside>
+
+        <main class="content">
+
+            <div class="grid" id="grid"></div>
+
+        </main>
+
+    </div>
+
+
+
+    <script>
+
+        // ==========================
+        // EDITAR AQUÍ
+        // ==========================
+
+        const cartas = [
+            {
+                numero: 1,
+                pregunta: "¿Por qué elegiste este taller?"
+            },
+            {
+                numero: 2,
+                pregunta: "¿Donde se usa el modelado 3D?"
+            },
+            {
+                numero: 3,
+                pregunta: "¿Que videojuego te apasiona más?"
+            },
+            {
+                numero: 4,
+                pregunta: "¿Cuál es la mejor película?"
+            },
+            {
+                numero: 5,
+                pregunta: "¿Que serie te gusta más?"
+            },
+            {
+                numero: 6,
+                pregunta: "¿Como se llama tu compañer@ de al lado?"
+            }
+        ];
+
+        const grid = document.getElementById("grid");
+
+        let cartaAbierta = null;
+
+        function renderCartas() {
+
+            grid.innerHTML = "";
+
+            cartas.forEach(carta => {
+
+                const card = document.createElement("div");
+                card.className = "card";
+
+                card.innerHTML = `
+    <div class="card-inner">
+        <div class="front">
+            <span class="numero">${carta.numero}</span>
+        </div>
+        <div class="back">${carta.pregunta}</div>
+    </div>
+`;
+
+                card.addEventListener("click", () => {
+
+                    if (cartaAbierta === card) {
+
+                        card.classList.remove("flipped");
+                        cartaAbierta = null;
+                        return;
+                    }
+
+                    if (cartaAbierta) {
+
+                        const anterior = cartaAbierta;
+
+                        cartaAbierta = null;
+
+                        anterior.classList.remove("flipped");
+
+                        const inner =
+                            anterior.querySelector(".card-inner");
+
+                        const abrirNueva = () => {
+
+                            card.classList.add("flipped");
+                            cartaAbierta = card;
+
+                            inner.removeEventListener(
+                                "transitionend",
+                                abrirNueva
+                            );
+                        };
+
+                        inner.addEventListener(
+                            "transitionend",
+                            abrirNueva
+                        );
+
+                    } else {
+
+                        card.classList.add("flipped");
+                        cartaAbierta = card;
+                    }
+
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        renderCartas();
+
+        function mezclarPreguntasInterno() {
+
+            const preguntas =
+                cartas.map(c => c.pregunta);
+
+            for (let i = preguntas.length - 1; i > 0; i--) {
+
+                const j =
+                    Math.floor(Math.random() * (i + 1));
+
+                [preguntas[i], preguntas[j]] =
+                    [preguntas[j], preguntas[i]];
+            }
+
+            cartas.forEach((carta, index) => {
+                carta.pregunta = preguntas[index];
+            });
+        }
+
+        document
+            .getElementById("shuffleBtn")
+            .addEventListener("click", animarMezcla);
+
+        let mezclando = false;
+        async function animarMezcla() {
+
+            if (mezclando) return;
+
+            mezclando = true;
+
+            const shuffleBtn =
+                document.getElementById("shuffleBtn");
+
+            shuffleBtn.classList.remove("girando");
+
+            void shuffleBtn.offsetWidth;
+
+            shuffleBtn.classList.add("girando");
+
+            const cards = [...document.querySelectorAll(".card")];
+
+            if (cards.length === 0) return;
+
+            // Cerrar cualquier carta abierta
+            cartaAbierta = null;
+
+            cards.forEach(card => {
+                card.classList.remove("flipped");
+            });
+
+            await new Promise(r => setTimeout(r, 300));
+
+
+
+
+            const gridRect = grid.getBoundingClientRect();
+
+            const centroX = gridRect.left + gridRect.width / 2;
+            const centroY = gridRect.top + gridRect.height / 2;
+
+            // Guardamos posiciones originales
+            const posiciones = cards.map(card => {
+
+                const rect = card.getBoundingClientRect();
+
+                return {
+                    card,
+                    x: centroX - (rect.left + rect.width / 2),
+                    y: centroY - (rect.top + rect.height / 2)
+                };
+            });
+
+            const numeros =
+                document.querySelectorAll(".numero");
+
+            numeros.forEach(numero => {
+                numero.classList.add("numero-oculto");
+            });
+
+            // Juntar cartas
+            posiciones.forEach(({ card, x, y }) => {
+
+                const rotacion =
+                    (Math.random() * 50) - 25;
+
+                card.style.zIndex = "100";
+
+                card.style.transition =
+                    "transform 1.4s cubic-bezier(.16,1,.3,1)";
+
+                card.style.transform =
+                    `translate(${x}px, ${y}px)
+             rotate(${rotacion}deg)
+             scale(.92)`;
+            });
+
+            await new Promise(r => setTimeout(r, 800));
+
+            // Mezclar preguntas
+            mezclarPreguntasInterno();
+
+            // Actualizar textos SIN recrear cartas
+            document
+                .querySelectorAll(".back")
+                .forEach((back, index) => {
+
+                    back.textContent =
+                        cartas[index].pregunta;
+                });
+
+
+            // Pequeña pausa para dar sensación de mezcla
+            await new Promise(r => setTimeout(r, 250));
+
+            // Repartir nuevamente
+            posiciones.forEach(({ card }) => {
+
+                card.style.transition =
+                    "transform 1.4s cubic-bezier(.16,1,.3,1)";
+
+                card.style.transform =
+                    "translate(0px,0px) rotate(0deg) scale(1)";
+            });
+
+            numeros.forEach((numero, index) => {
+
+                setTimeout(() => {
+
+                    numero.classList.remove("numero-oculto");
+
+                }, 300 + index * 80);
+
+            });
+
+            await new Promise(r => setTimeout(r, 1200));
+
+            cards.forEach(card => {
+                card.style.zIndex = "";
+            });
+
+            mezclando = false;
+        }
+
+    </script>
+
+</body>
+
+</html>
